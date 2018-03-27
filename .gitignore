@@ -1,0 +1,5 @@
+# PyCharm skwonk
+*.pyc
+
+# Other crap
+.DS_Store
