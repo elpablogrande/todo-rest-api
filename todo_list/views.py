@@ -19,8 +19,46 @@ from todo_list.models import ToDoList, ParentTask, ChildTask
 from rest_framework import viewsets, status
 from rest_framework.decorators import list_route
 from rest_framework.response import Response
+from django.contrib.auth.models import User, Group
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import BasicAuthentication
+
 from todo_list.serializers import TodoListSerializer, ParentTaskSerializer, ChildTaskSerializer, \
-    ChildTaskCompletionSerializer, ParentTaskCompletionSerializer
+    ChildTaskCompletionSerializer, ParentTaskCompletionSerializer, UserSerializer, GroupSerializer
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows users to be viewed or edited.
+    """
+
+    authentication_classes = (BasicAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    queryset = User.objects.all().order_by('-date_joined')
+    serializer_class = UserSerializer
+
+    #def list(self, request):
+    #    """
+    #    foo
+    #    :param request:
+    #    :return:
+    #    """
+    #    response = super(UserViewSet, self).list(self, request)
+    def get_queryset(self):
+        """
+        This view should return a list of all the purchases
+        for the currently authenticated user.
+        """
+        user = self.request.user
+        return User.objects.filter(username=user)
+
+
+class GroupViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows groups to be viewed or edited.
+    """
+    queryset = Group.objects.all()
+    serializer_class = GroupSerializer
 
 
 class TodoListTaskViewSet(viewsets.ModelViewSet):

@@ -3,3 +3,7 @@
 
 # Other crap
 .DS_Store
+
+.idea/*
+db.sqlite3
+todo_list/migrations/*

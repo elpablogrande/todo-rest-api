@@ -13,6 +13,7 @@ Think of each class as a table in a SQL database, and each of the variables decl
 
 from __future__ import unicode_literals
 from django.db import models
+from django.contrib.auth.models import User
 
 # Create your models here.
 
@@ -22,6 +23,7 @@ class ToDoList(models.Model):
     Each record represents a list of things to do.
     """
 
+    user_id = models.ForeignKey(User, related_name='user_id', on_delete=models.CASCADE)
     list_name = models.CharField(max_length=50)
     list_description = models.CharField(max_length=1000)
 

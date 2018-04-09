@@ -27,6 +27,8 @@ router = routers.DefaultRouter()
 router.register(r'v1/lists', views.TodoListTaskViewSet)
 router.register(r'v1/tasks', views.ParentTaskViewSet)
 router.register(r'v1/child_tasks', views.ChildTaskViewSet)
+router.register(r'v1/users', views.UserViewSet)
+router.register(r'v1/groups', views.GroupViewSet)
 
 urlpatterns = [
     url(r'^', include(router.urls)),
