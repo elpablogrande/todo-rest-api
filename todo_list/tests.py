@@ -5,7 +5,7 @@ from todo_list.views import ParentTaskViewSet, ChildTaskViewSet
 from rest_framework.response import Response
 from rest_framework.test import APIRequestFactory, APITestCase
 from rest_framework import status
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # Create your tests here.
 
@@ -164,6 +164,47 @@ class ParentTaskViewSetTestCase(APITestCase):
         # child completion date returned a parseable datetime
         self.assertIsInstance(child_completion_date, datetime)
 
+    def test_create_recurring_task(self):
+        """
+        Unit test the 'create recurring task' list route & Python method
+        :return: None
+        """
+        '''Arrange'''
+        # Create a list
+        list_url = '/v1/lists/'
+
+        list_data = {
+            "list_name": "Yet Another List",
+            "list_description": "Still more things I need to do"
+        }
+
+        list_response = self.client.post(list_url, list_data, format='json')
+        list_id = list_response.data['id']
+
+        '''Act'''
+        # attempt to create a recurring task
+        recurrence_url = '/v1/tasks/create_recurring_task/'
+        recurrence_data = {
+            "todo_list_id": list_id,
+            "task_name": "recurring task",
+            "task_description": "do stuff repeatedly",
+            "recurrence_start_date": "2018-04-12T12:00:00",
+            "recurrence_end_date": "2018-04-14T15:00:00",
+            "recurrence_frequency": "daily"
+        }
+        recurrence_response = self.client.post(recurrence_url, recurrence_data, format='json', host='127.0.0.1')
+
+        '''Assert'''
+        # Endpoint responded as expected
+        self.assertEqual(recurrence_response.status_code, status.HTTP_201_CREATED)
+        # 3 new records were created
+        self.assertEqual(len(recurrence_response.data), 3)
+        # Each date due date advances by one day
+        due_date = recurrence_response.data[0]['task_due_date']
+        time_delta = timedelta(days=1)
+        for task in recurrence_response.data:
+            self.assertEqual(task['task_due_date'], due_date)
+            due_date += time_delta
 
     def test_view_list(self):
         """

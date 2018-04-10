@@ -14,13 +14,14 @@ from __future__ import unicode_literals
 
 # Create your views here.
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from todo_list.models import ToDoList, ParentTask, ChildTask
 from rest_framework import viewsets, status
 from rest_framework.decorators import list_route
 from rest_framework.response import Response
+#from rest_framework.request import Request
 from todo_list.serializers import TodoListSerializer, ParentTaskSerializer, ChildTaskSerializer, \
-    ChildTaskCompletionSerializer, ParentTaskCompletionSerializer
+    ChildTaskCompletionSerializer, ParentTaskCompletionSerializer, CreateRecurringTaskSerializer
 
 
 class TodoListTaskViewSet(viewsets.ModelViewSet):
@@ -97,6 +98,89 @@ class ParentTaskViewSet(viewsets.ModelViewSet):
                 error_response = {'status': 'Invalid Task ID'}
             return Response(error_response, status=status.HTTP_400_BAD_REQUEST)
 
+    @list_route(methods=['post'])
+    def create_recurring_task(self, request, pk=None):
+        """
+        A special method for creating recurring tasks.
+        :param request: a Request object
+        :param pk: not important
+        :return: a Response object
+        """
+        serializer = CreateRecurringTaskSerializer(data=request.data)
+        serializer_valid = serializer.is_valid()
+
+        todo_list_id = None
+        recurrence_frequency = None
+        data_valid = None
+
+        if serializer_valid:
+            todo_list_id = serializer.data['todo_list_id']
+            recurrence_frequency = serializer.data['recurrence_frequency']
+            data_valid = ToDoList.objects.filter(id__exact=todo_list_id).exists() and \
+                (recurrence_frequency == 'daily' or recurrence_frequency == 'weekly')
+
+        if data_valid:
+            # If valid, create a series of tasks based on the input data.
+            todo_list_id = serializer.data['todo_list_id']
+            task_name = serializer.data['task_name']
+            task_description = serializer.data['task_description']
+            recurrence_start_date_str = serializer.data['recurrence_start_date']
+            recurrence_end_date_str = serializer.data['recurrence_end_date']
+            recurrence_frequency = serializer.data['recurrence_frequency']
+
+            time_delta = None
+            if recurrence_frequency == 'daily':
+                time_delta = timedelta(days=1)
+            elif recurrence_frequency == 'weekly':
+                time_delta = timedelta(weeks=1)
+
+            recurrence_start_date = datetime.strptime(recurrence_start_date_str[:19], '%Y-%m-%dT%H:%M:%S')
+            recurrence_end_date = datetime.strptime(recurrence_end_date_str[:19], '%Y-%m-%dT%H:%M:%S')
+
+            recurrences_data = []
+
+            while recurrence_start_date <= recurrence_end_date:
+                # Insert a new record
+
+                task_data = {
+                    'todo_list_id': todo_list_id,
+                    'task_name': task_name,
+                    'task_description': task_description,
+                    'task_due_date': recurrence_start_date
+                }
+                task_serializer = ParentTaskSerializer(data=task_data)
+                task_serializer.is_valid()
+
+                host = ''
+                if 'HTTP_HOST' in request.META:
+                    host = request.META['HTTP_HOST']
+
+                inserted_record = task_serializer.save()
+                response_data = {
+                    'url': request.META['wsgi.url_scheme'] + '://' + host + '/v1/tasks/' +
+                           str(inserted_record.id) + '/',
+                    'id':  inserted_record.id,
+                    'todo_list_id': inserted_record.todo_list_id.id,
+                    'task_name': inserted_record.task_name,
+                    'task_description': inserted_record.task_description,
+                    'task_due_date':  inserted_record.task_due_date
+                }
+
+                recurrences_data.append(response_data)
+
+                recurrence_start_date += time_delta
+
+            return Response(data=recurrences_data, status=status.HTTP_201_CREATED)
+
+        else:
+
+            # The request did not pass validation; return a 400 header.
+            if serializer.errors:
+                error_response = serializer.errors
+            else:
+                error_response = {'status': 'Invalid List ID'}
+
+            return Response(error_response, status=status.HTTP_400_BAD_REQUEST)
 
 class ChildTaskViewSet(viewsets.ModelViewSet):
     """

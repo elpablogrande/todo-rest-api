@@ -9,6 +9,7 @@ Performs JSON serialization and deserialization to interface the API views with 
 """
 from todo_list.models import ToDoList, ParentTask, ChildTask
 from rest_framework import serializers
+from rest_framework.serializers import CharField, DateTimeField
 
 
 class ChildTaskSerializer(serializers.ModelSerializer):
@@ -42,6 +43,18 @@ class ParentTaskCompletionSerializer(serializers.Serializer):
     task_id = serializers.IntegerField()
 
 
+class CreateRecurringTaskSerializer(serializers.Serializer):
+    """
+    Serializer class for the endpoint that creates recurring tasks.
+    """
+    todo_list_id = serializers.IntegerField()
+    task_name = serializers.CharField(max_length=50)
+    task_description = serializers.CharField(max_length=100)
+    recurrence_start_date = serializers.DateTimeField()
+    recurrence_end_date = serializers.DateTimeField()
+    recurrence_frequency = serializers.CharField(max_length=10)
+
+
 class ParentTaskSerializer(serializers.ModelSerializer):
 
     # DRF provides for nested serializers
@@ -58,6 +71,7 @@ class ParentTaskSerializer(serializers.ModelSerializer):
                   'task_completed_date',
                   'child_tasks'
                   )
+
 
 
 class TodoListSerializer(serializers.ModelSerializer):
