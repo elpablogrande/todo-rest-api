@@ -206,6 +206,11 @@ class ParentTaskViewSetTestCase(APITestCase):
             self.assertEqual(task['task_due_date'], due_date)
             due_date += time_delta
 
+            # While we're at it, test each URL
+            get_url = task['url']
+            get_response = self.client.get(get_url)
+            self.assertEqual(get_response.status_code, status.HTTP_200_OK)
+
     def test_view_list(self):
         """
         Unit test the List method.
