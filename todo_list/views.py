@@ -158,12 +158,12 @@ class ParentTaskViewSet(viewsets.ModelViewSet):
 
                 if 'PATH_INFO' in request.META:
                     path = request.META['PATH_INFO']
-                    version = path.split('/')[0]
+                    version = path.split('/')[1]
                     version_path = version_path + version
 
                 inserted_record = task_serializer.save()
                 response_data = {
-                    'url': request.META['wsgi.url_scheme'] + '://' + host + version_path + 'tasks/' +
+                    'url': request.META['wsgi.url_scheme'] + '://' + host + version_path + '/tasks/' +
                            str(inserted_record.id) + '/',
                     'id':  inserted_record.id,
                     'todo_list_id': inserted_record.todo_list_id.id,
