@@ -19,7 +19,6 @@ from todo_list.models import ToDoList, ParentTask, ChildTask
 from rest_framework import viewsets, status
 from rest_framework.decorators import list_route
 from rest_framework.response import Response
-#from rest_framework.request import Request
 from todo_list.serializers import TodoListSerializer, ParentTaskSerializer, ChildTaskSerializer, \
     ChildTaskCompletionSerializer, ParentTaskCompletionSerializer, CreateRecurringTaskSerializer
 

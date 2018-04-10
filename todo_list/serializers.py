@@ -9,8 +9,6 @@ Performs JSON serialization and deserialization to interface the API views with 
 """
 from todo_list.models import ToDoList, ParentTask, ChildTask
 from rest_framework import serializers
-from rest_framework.serializers import CharField, DateTimeField
-
 
 class ChildTaskSerializer(serializers.ModelSerializer):
     """
